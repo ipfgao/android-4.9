@@ -118,10 +118,6 @@ static struct pmic_table power_table[] = {
 		.reg = 0x10,
 		.bit = 0x00
 	}, /* BUC6 */
-	{
-		.address = 0x4c,
-		.reg = 0x92,
-	}, /* GPI1 */
 };
 
 /* TMP0 - TMP5 are the same, all from GPADC */
@@ -160,12 +156,7 @@ static int intel_xpower_pmic_get_power(struct regmap *regmap, int reg,
 	if (regmap_read(regmap, reg, &data))
 		return -EIO;
 
-	/* GPIO1 LDO regulator needs special handling */
-	if (reg == 0x92)
-		*value = ((data & 0x07) == 0x03);
-	else
-		*value = (data & BIT(bit)) ? 1 : 0;
-
+	*value = (data & BIT(bit)) ? 1 : 0;
 	return 0;
 }
 
@@ -173,10 +164,6 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
 					  int bit, bool on)
 {
 	int data;
-
-	/* GPIO1 LDO regulator needs special handling */
-	if (reg == 0x92)
-		return regmap_update_bits(regmap, reg, 0x07, on ? 0x03 : 0x04);
 
 	if (regmap_read(regmap, reg, &data))
 		return -EIO;
